@@ -28,4 +28,18 @@ public class NotificacoesController : ControllerBase
             return BadRequest(new { mensagem = excecao.Message });
         }
     }
+
+    [HttpPost("processar-async")]
+    public async Task<ActionResult<ResultadoProcessamento>> ProcessarAsync(SolicitacaoProcessamento solicitacao)
+    {
+        try
+        {
+            ResultadoProcessamento resultado = await _notificacaoService.ProcessarLoteAsync(solicitacao.Quantidade);
+            return Ok(resultado);
+        }
+        catch (ArgumentException excecao)
+        {
+            return BadRequest(new { mensagem = excecao.Message });
+        }
+    }
 }

@@ -55,6 +55,43 @@ public class NotificacaoService : INotificacaoService
         _notificacaoRepository.Adicionar(notificacao);
     }
 
+    private async Task ProcessarNotificacaoAsync()
+    {
+        var notificacao = new Notificacao
+        {
+            Id = Guid.NewGuid(),
+            CriadaEm = DateTime.Now
+        };
+
+        // Diferentemente de Thread.Sleep(), que trava a thread e impede outros processamentos,
+        // com Task.Delay() a thread pode ser usada para atender outros trabalhos.
+        await Task.Delay(_configuracao.AtrasoPorNotificacaoEmMilissegundos);
+
+        notificacao.Status = EstadoNotificacao.Processada;
+        notificacao.ProcessadaEm = DateTime.Now;
+        _notificacaoRepository.Adicionar(notificacao);
+    }
+
+    public async Task<ResultadoProcessamento> ProcessarLoteAsync(int quantidade)
+    {
+        ValidarQuantidade(quantidade);
+
+        Stopwatch cronometro = Stopwatch.StartNew();
+
+        for (int indice = 1; indice <= quantidade; indice++)
+        {
+            await ProcessarNotificacaoAsync();
+        }
+
+        cronometro.Stop();
+
+        return new ResultadoProcessamento
+        {
+            QuantidadeProcessada = quantidade,
+            TempoTotalEmMilissegundos = cronometro.ElapsedMilliseconds
+        };
+    }
+
     private void ValidarQuantidade(int quantidade)
     {
         if (quantidade < 1)

@@ -2,7 +2,7 @@
 
 const QUANTIDADE_REQUISICOES = 50;
 const MAX_NOTIFICACOES = 20;
-const URL_PROCESSAMENTO = 'http://localhost:5100/api/notificacoes/processar';
+const URL_PROCESSAMENTO = 'http://localhost:5100/api/notificacoes/processar-async';
 
 async function enviarRequisicao(numero) {
   const inicio = performance.now();
