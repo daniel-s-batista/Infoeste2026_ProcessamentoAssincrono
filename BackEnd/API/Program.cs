@@ -1,27 +1,46 @@
-namespace API
+using Core.Interfaces;
+using Core.Models;
+using Core.Repositories;
+using Core.Services;
+using System.Text.Json.Serialization;
+
+namespace API;
+
+public class Program
 {
-    public class Program
+    private const string PoliticaCorsFrontend = "FrontendLocal";
+
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        var builder = WebApplication.CreateBuilder(args);
+
+        var configuracaoProcessamento = builder.Configuration
+            .GetSection("ProcessamentoNotificacoes")
+            .Get<ConfiguracaoProcessamento>() ?? new ConfiguracaoProcessamento();
+
+        builder.Services.AddSingleton(configuracaoProcessamento);
+        builder.Services.AddSingleton<INotificacaoRepository, NotificacaoRepository>();
+        builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
+        builder.Services.AddControllers().AddJsonOptions(opcoes =>
         {
-            var builder = WebApplication.CreateBuilder(args);
+            opcoes.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
+        builder.Services.AddCors(opcoes =>
+        {
+            opcoes.AddPolicy(PoliticaCorsFrontend, politica =>
+            {
+                politica
+                    .WithOrigins("http://localhost:5173")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
 
-            // Add services to the container.
+        var app = builder.Build();
 
-            builder.Services.AddControllers();
+        app.UseCors(PoliticaCorsFrontend);
+        app.MapControllers();
 
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
-
-            app.MapControllers();
-
-            app.Run();
-        }
+        app.Run();
     }
 }
