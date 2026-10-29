@@ -1,3 +1,4 @@
+using API.Services;
 using Core.Interfaces;
 using Core.Models;
 using Core.Repositories;
@@ -18,8 +19,14 @@ public class Program
             .GetSection("ProcessamentoNotificacoes")
             .Get<ConfiguracaoProcessamento>() ?? new ConfiguracaoProcessamento();
 
+        var configuracaoServiceBus = builder.Configuration
+            .GetSection("ServiceBus")
+            .Get<ConfiguracaoServiceBus>() ?? new ConfiguracaoServiceBus();
+
         builder.Services.AddSingleton(configuracaoProcessamento);
+        builder.Services.AddSingleton(configuracaoServiceBus);
         builder.Services.AddSingleton<INotificacaoRepository, NotificacaoRepository>();
+        builder.Services.AddSingleton<INotificacaoPublisher, NotificacaoPublisher>();
         builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
         builder.Services.AddControllers().AddJsonOptions(opcoes =>
         {

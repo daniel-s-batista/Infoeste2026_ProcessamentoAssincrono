@@ -42,4 +42,30 @@ public class NotificacoesController : ControllerBase
             return BadRequest(new { mensagem = excecao.Message });
         }
     }
+
+    [HttpPost("enfileirar")]
+    public async Task<ActionResult> Enfileirar(SolicitacaoProcessamento solicitacao)
+    {
+        try
+        {
+            List<Mensagem> mensagens = _notificacaoService.CriarMensagens(solicitacao.Quantidade);
+            await _notificacaoService.PublicarAsync(mensagens);
+
+            return Accepted(new { quantidadeEnfileirada = mensagens.Count });
+        }
+        catch (ArgumentException excecao)
+        {
+            return BadRequest(new { mensagem = excecao.Message });
+        }
+        catch (FormatException)
+        {
+            return Problem(
+                "A connection string configurada para o Service Bus não é válida.",
+                statusCode: StatusCodes.Status500InternalServerError);
+        }
+        catch (InvalidOperationException excecao)
+        {
+            return Problem(excecao.Message, statusCode: StatusCodes.Status500InternalServerError);
+        }
+    }
 }

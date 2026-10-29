@@ -8,25 +8,28 @@ namespace Core.Services;
 public class NotificacaoService : INotificacaoService
 {
     private readonly INotificacaoRepository _notificacaoRepository;
+    private readonly INotificacaoPublisher _notificacaoPublisher;
     private readonly ConfiguracaoProcessamento _configuracao;
 
     public NotificacaoService(
         INotificacaoRepository notificacaoRepository,
+        INotificacaoPublisher notificacaoPublisher,
         ConfiguracaoProcessamento configuracao)
     {
         _notificacaoRepository = notificacaoRepository;
+        _notificacaoPublisher = notificacaoPublisher;
         _configuracao = configuracao;
     }
 
     public ResultadoProcessamento ProcessarLote(int quantidade)
     {
-        ValidarQuantidade(quantidade);
+        List<Mensagem> mensagens = CriarMensagens(quantidade);
 
         Stopwatch cronometro = Stopwatch.StartNew();
 
-        for (int indice = 1; indice <= quantidade; indice++)
+        foreach (Mensagem mensagem in mensagens)
         {
-            ProcessarNotificacao();
+            ProcessarNotificacao(mensagem);
         }
 
         cronometro.Stop();
@@ -38,12 +41,12 @@ public class NotificacaoService : INotificacaoService
         };
     }
 
-    private void ProcessarNotificacao()
+    private void ProcessarNotificacao(Mensagem mensagem)
     {
         var notificacao = new Notificacao
         {
-            Id = Guid.NewGuid(),
-            CriadaEm = DateTime.Now
+            Id = mensagem.Id,
+            CriadaEm = mensagem.CriadaEm
         };
 
         // Bloqueio intencional para mostrar um dos problemas da programação síncrona
@@ -55,12 +58,12 @@ public class NotificacaoService : INotificacaoService
         _notificacaoRepository.Adicionar(notificacao);
     }
 
-    private async Task ProcessarNotificacaoAsync()
+    public async Task ProcessarNotificacaoAsync(Mensagem mensagem)
     {
         var notificacao = new Notificacao
         {
-            Id = Guid.NewGuid(),
-            CriadaEm = DateTime.Now
+            Id = mensagem.Id,
+            CriadaEm = mensagem.CriadaEm
         };
 
         // Diferentemente de Thread.Sleep(), que trava a thread e impede outros processamentos,
@@ -74,13 +77,13 @@ public class NotificacaoService : INotificacaoService
 
     public async Task<ResultadoProcessamento> ProcessarLoteAsync(int quantidade)
     {
-        ValidarQuantidade(quantidade);
+        List<Mensagem> mensagens = CriarMensagens(quantidade);
 
         Stopwatch cronometro = Stopwatch.StartNew();
 
-        for (int indice = 1; indice <= quantidade; indice++)
+        foreach (Mensagem mensagem in mensagens)
         {
-            await ProcessarNotificacaoAsync();
+            await ProcessarNotificacaoAsync(mensagem);
         }
 
         cronometro.Stop();
@@ -90,6 +93,29 @@ public class NotificacaoService : INotificacaoService
             QuantidadeProcessada = quantidade,
             TempoTotalEmMilissegundos = cronometro.ElapsedMilliseconds
         };
+    }
+
+    public List<Mensagem> CriarMensagens(int quantidade)
+    {
+        ValidarQuantidade(quantidade);
+
+        var mensagens = new List<Mensagem>();
+
+        for (int indice = 1; indice <= quantidade; indice++)
+        {
+            mensagens.Add(new Mensagem
+            {
+                Id = Guid.NewGuid(),
+                CriadaEm = DateTime.Now
+            });
+        }
+
+        return mensagens;
+    }
+
+    public async Task PublicarAsync(IEnumerable<Mensagem> mensagens)
+    {
+        await _notificacaoPublisher.PublicarAsync(mensagens);
     }
 
     private void ValidarQuantidade(int quantidade)

@@ -1,3 +1,8 @@
+using Core.Interfaces;
+using Core.Models;
+using Core.Repositories;
+using Core.Services;
+
 namespace Worker
 {
     public class Program
@@ -5,6 +10,13 @@ namespace Worker
         public static void Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
+            var configuracaoServiceBus = builder.Configuration
+                .GetSection("ServiceBus")
+                .Get<ConfiguracaoServiceBus>() ?? new ConfiguracaoServiceBus();
+
+            builder.Services.AddSingleton(configuracaoServiceBus);
+            builder.Services.AddSingleton<INotificacaoRepository, NotificacaoRepository>();
+            builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
             builder.Services.AddHostedService<Worker>();
 
             var host = builder.Build();
