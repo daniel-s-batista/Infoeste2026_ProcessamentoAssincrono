@@ -102,6 +102,21 @@ public class NotificacaoService : INotificacaoService
         _notificacaoRepository.Adicionar(notificacao);
     }
 
+    public async Task ProcessarNotificacaoAsync(MensagemServiceBus mensagem)
+    {
+        var notificacao = new Notificacao
+        {
+            Id = mensagem.Id,
+            CriadaEm = mensagem.CriadaEm
+        };
+
+        await Task.Delay(_configuracao.AtrasoPorNotificacaoEmMilissegundos);
+
+        notificacao.Status = EstadoNotificacao.Processada;
+        notificacao.ProcessadaEm = DateTime.Now;
+        _notificacaoRepository.Adicionar(notificacao);
+    }
+
     public List<MensagemServiceBus> CriarMensagens(int quantidade)
     {
         ValidarQuantidade(quantidade);
