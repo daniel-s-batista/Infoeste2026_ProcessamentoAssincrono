@@ -1,5 +1,0 @@
-<Solution>
-  <Project Path="API/API.csproj" />
-  <Project Path="Core/Core.csproj" />
-  <Project Path="Worker/Worker.csproj" Id="def8aff7-b192-41eb-9c70-45d47e3cd7a4" />
-</Solution>
