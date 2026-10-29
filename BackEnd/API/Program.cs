@@ -27,7 +27,13 @@ public class Program
         builder.Services.AddSingleton(configuracaoServiceBus);
         builder.Services.AddSingleton<INotificacaoRepository, NotificacaoRepository>();
         builder.Services.AddSingleton<INotificacaoPublisher, NotificacaoPublisher>();
-        builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
+        builder.Services.AddScoped<INotificacaoService>(provider =>
+            new NotificacaoService(
+                provider.GetRequiredService<INotificacaoRepository>(),
+                provider.GetRequiredService<INotificacaoPublisher>(),
+                provider.GetRequiredService<ConfiguracaoProcessamento>()
+            )
+        );
         builder.Services.AddControllers().AddJsonOptions(opcoes =>
         {
             opcoes.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());

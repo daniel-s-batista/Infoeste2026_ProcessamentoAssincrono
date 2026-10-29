@@ -1,8 +1,8 @@
 // Script para testar o envio de múltiplas requisições para a API
 
-const QUANTIDADE_REQUISICOES = 50;
-const MAX_NOTIFICACOES = 20;
-const URL_PROCESSAMENTO = 'http://localhost:5100/api/notificacoes/processar-async';
+const QUANTIDADE_REQUISICOES = 1;
+const MAX_NOTIFICACOES = 5;
+const URL_PROCESSAMENTO = 'http://localhost:5100/api/notificacoes/enfileirar';
 
 async function enviarRequisicao(numero) {
   const inicio = performance.now();

@@ -21,6 +21,15 @@ public class NotificacaoService : INotificacaoService
         _configuracao = configuracao;
     }
 
+    public NotificacaoService(
+        INotificacaoRepository notificacaoRepository,
+        ConfiguracaoProcessamento configuracao)
+    {
+        _notificacaoRepository = notificacaoRepository;
+        _configuracao = configuracao;
+        _notificacaoPublisher = null;
+    }
+
     public ResultadoProcessamento ProcessarLote(int quantidade)
     {
         List<Mensagem> mensagens = CriarMensagens(quantidade);
