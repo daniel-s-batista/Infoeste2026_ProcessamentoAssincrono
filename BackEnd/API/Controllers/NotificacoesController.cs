@@ -46,4 +46,20 @@ public class NotificacoesController : ControllerBase
             return BadRequest(new { mensagem = excecao.Message });
         }
     }
+
+    [HttpPost("enfileirar")]
+    public async Task<ActionResult> Enfileirar(SolicitacaoProcessamento solicitacaoProcessamento)
+    {
+        try
+        {
+            var mensagens = _notificacaoService.CriarMensagens(solicitacaoProcessamento.Quantidade);
+            await _notificacaoService.PublicarAsync(mensagens);
+
+            return Ok();
+        }
+        catch
+        {
+            return BadRequest("Ocorreu um erro.");
+        }
+    }
 }

@@ -102,6 +102,29 @@ public class NotificacaoService : INotificacaoService
         _notificacaoRepository.Adicionar(notificacao);
     }
 
+    public List<MensagemServiceBus> CriarMensagens(int quantidade)
+    {
+        ValidarQuantidade(quantidade);
+
+        var mensagens = new List<MensagemServiceBus>();
+
+        for (int i = 0; i < quantidade; i++)
+        {
+            mensagens.Add(new MensagemServiceBus
+            {
+                Id = Guid.NewGuid(),
+                CriadaEm = DateTime.Now
+            });
+        }
+
+        return mensagens;
+    }
+
+    public async Task PublicarAsync(IEnumerable<MensagemServiceBus> mensagens)
+    {
+        await _notificacaoPublisher.PublicarAsync(mensagens);
+    }
+
     private void ValidarQuantidade(int quantidade)
     {
         if (quantidade < 1)
