@@ -15,12 +15,30 @@ public class NotificacoesController : ControllerBase
         _notificacaoService = notificacaoService;
     }
 
+    // POST https://localhost/api/notificacoes/processar HTTP 1.1
+    // <headers>
+    //
+    // { "Quantidade": 5 }
     [HttpPost("processar")]
     public ActionResult<ResultadoProcessamento> Processar(SolicitacaoProcessamento solicitacao)
     {
         try
         {
             ResultadoProcessamento resultado = _notificacaoService.ProcessarLote(solicitacao.Quantidade);
+            return Ok(resultado);
+        }
+        catch (ArgumentException excecao)
+        {
+            return BadRequest(new { mensagem = excecao.Message });
+        }
+    }
+
+    [HttpPost("processar-async")]
+    public async Task<ActionResult<ResultadoProcessamento>> ProcessarAsync(SolicitacaoProcessamento solicitacao)
+    {
+        try
+        {
+            ResultadoProcessamento resultado = await _notificacaoService.ProcessarLoteAsync(solicitacao.Quantidade);
             return Ok(resultado);
         }
         catch (ArgumentException excecao)

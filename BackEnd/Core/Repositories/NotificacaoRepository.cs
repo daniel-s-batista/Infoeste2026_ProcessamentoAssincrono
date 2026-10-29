@@ -10,6 +10,9 @@ public class NotificacaoRepository : INotificacaoRepository
 
     public void Adicionar(Notificacao notificacao)
     {
+        /**
+         * INSERT INTO tb_notificacoes ( ... ) VALUES ( ... );
+         */
         lock (_bloqueio)
         {
             _notificacoes.Add(notificacao);

@@ -8,6 +8,7 @@ namespace Core.Services;
 public class NotificacaoService : INotificacaoService
 {
     private readonly INotificacaoRepository _notificacaoRepository;
+    private readonly INotificacaoPublisher _notificacaoPublisher;
     private readonly ConfiguracaoProcessamento _configuracao;
 
     public NotificacaoService(
@@ -15,6 +16,17 @@ public class NotificacaoService : INotificacaoService
         ConfiguracaoProcessamento configuracao)
     {
         _notificacaoRepository = notificacaoRepository;
+        _notificacaoPublisher = null;
+        _configuracao = configuracao;
+    }
+
+    public NotificacaoService(
+        INotificacaoRepository notificacaoRepository,
+        INotificacaoPublisher notificacaoPublisher,
+        ConfiguracaoProcessamento configuracao)
+    {
+        _notificacaoRepository = notificacaoRepository;
+        _notificacaoPublisher = notificacaoPublisher;
         _configuracao = configuracao;
     }
 
@@ -49,6 +61,41 @@ public class NotificacaoService : INotificacaoService
         // Bloqueio intencional para mostrar um dos problemas da programação síncrona
         // A Thread pode ficar travada durante o prossamento de uma mensagem
         Thread.Sleep(_configuracao.AtrasoPorNotificacaoEmMilissegundos);
+
+        notificacao.Status = EstadoNotificacao.Processada;
+        notificacao.ProcessadaEm = DateTime.Now;
+        _notificacaoRepository.Adicionar(notificacao);
+    }
+
+    public async Task<ResultadoProcessamento> ProcessarLoteAsync(int quantidade)
+    {
+        ValidarQuantidade(quantidade);
+
+        Stopwatch cronometro = Stopwatch.StartNew();
+
+        for (int indice = 1; indice <= quantidade; indice++)
+        {
+            await ProcessarNotificacaoAsync();
+        }
+
+        cronometro.Stop();
+
+        return new ResultadoProcessamento
+        {
+            QuantidadeProcessada = quantidade,
+            TempoTotalEmMilissegundos = cronometro.ElapsedMilliseconds
+        };
+    }
+
+    private async Task ProcessarNotificacaoAsync()
+    {
+        var notificacao = new Notificacao
+        {
+            Id = Guid.NewGuid(),
+            CriadaEm = DateTime.Now
+        };
+
+        await Task.Delay(_configuracao.AtrasoPorNotificacaoEmMilissegundos);
 
         notificacao.Status = EstadoNotificacao.Processada;
         notificacao.ProcessadaEm = DateTime.Now;
