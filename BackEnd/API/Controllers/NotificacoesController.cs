@@ -1,6 +1,7 @@
 using Core.Interfaces;
 using Core.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace API.Controllers;
 
@@ -52,10 +53,20 @@ public class NotificacoesController : ControllerBase
     {
         try
         {
+            var cronometro = Stopwatch.StartNew();
+
             var mensagens = _notificacaoService.CriarMensagens(solicitacaoProcessamento.Quantidade);
             await _notificacaoService.PublicarAsync(mensagens);
 
-            return Ok();
+            cronometro.Stop();
+
+            var resultado = new ResultadoProcessamento()
+            {
+                QuantidadeProcessada = solicitacaoProcessamento.Quantidade,
+                TempoTotalEmMilissegundos = cronometro.ElapsedMilliseconds / 1000
+            };
+
+            return Ok(resultado);
         }
         catch
         {
